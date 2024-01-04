@@ -1,0 +1,75 @@
+---
+title: "NST IA Mathematical Biology Assessed Practical 1"
+author: "Richard Gotts - rgg26"
+date: "19/12/2020"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+## Data Summary
+```{r}
+fish <- read.csv("data.csv", stringsAsFactors = TRUE)
+summary(fish)
+```
+The lengths in this sample of fish from the study site have a mean of 24.72, a median of 17.95, a range of 80.90 and an interquartile range of 15.12. There are 6 more males than females in the sample.
+
+## Does the sex ratio deviate from 1:1?
+```{r}
+binom.test(18, 30, p = 0.5)
+```
+The p-value (0.3616) is greater than the significance level (0.05), so there is insufficient evidence to reject the null hypothesis. The sex ratio does not significantly deviate from 1:1.
+
+## Do females and males differ in size?
+```{r}
+boxplot(length~sex, data=fish)
+```
+
+This initial presentation of the data shows little difference between the lower quartile and median length values of female and male fish. However, the upper quartile length is noticeably higher for male fish, suggesting a higher mean length for males. In both sex groups there is one outlier, which is the maximum length in both cases.
+
+### T-Test
+```{r}
+t.test(length~sex, data=fish)
+```
+The p-value (0.035) is less than the significance level (0.05), so there is sufficient evidence to reject the null hypothesis. Males are significantly longer than females.
+
+```{r}
+par(mfrow=c(1,2))
+females <- fish[1:12,1]
+hist(females, main = "Females", xlab = "Length")
+males <- fish[13:30,1]
+hist(males, main = "Males", xlab = "Length")
+```
+
+However, the data (particularly for males) does not fit a normal distribution very well, as shown above. As a result, use of a t-test is invalid in this situation, so a non-parametric test is used instead.
+
+### Mann-Whitney Test
+```{r}
+wilcox.test(length~sex, data=fish)
+```
+The p-value (0.2665) is greater than the significance level (0.05), so there is insufficient evidence to reject the null hypothesis. There is no significant difference in length between female and male fish. This result contradicts the result from the t-test.
+
+### T-test using log-transformed data
+```{r}
+loglength <- log(fish$length)
+fish <- cbind(fish, loglength)
+t.test(loglength~sex, data=fish)
+```
+The p-value (0.06164) is greater than the significance level (0.05), so there is insufficient evidence to reject the null hypothesis. There is no significant difference in log length between female and male fish.
+
+```{r}
+par(mfrow=c(1,2))
+logfemales <- fish[1:12,3]
+hist(logfemales, main = "Females", xlab = "Log Length")
+logmales <- fish[13:30,3]
+hist(logmales, main = "Males", xlab = "Log Length")
+```
+
+The log-transformed data for females is a closer fit to a normal distribution (except for the bar at log length 2.6-2.8). However, the log-transformed data for males still fails to fit a normal distribution and so use of a t-test for the log-transformed data is still invalid.
+
+## Summary of Analyses
+
+Although there were 6 more male fish than female fish in the sample, the binomial test provided evidence to suggest that - for this sample size of 30 - there was in fact no significant deviation from a sex ratio of 1:1. Based on the initial boxplot presentation of length against sex, it looked like males might have a greater mean length than females. However, the t-tests on the raw data and log-transformed data both proved invalid, as there was not an underlying normal distribution, so the only valid test was the Mann-Whitney test. This provided insufficient evidence to reject the null hypothesis; we can conclude that males may not be significantly longer than females.
